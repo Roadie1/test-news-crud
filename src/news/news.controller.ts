@@ -7,9 +7,9 @@ import {
   Post,
   Put,
 } from '@nestjs/common';
-import { NewsService } from './';
+import { NewsService } from './news.service';
 import { CreatePostDto, UpdatePostDto } from '../dto';
-import { PostEntity } from '../entities';
+import { Post as PostEntity } from '../entities';
 
 @Controller('news')
 export class NewsController {

@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { NewsModule } from './news';
+import { NewsModule } from './news/news.module';
 import { AuthModule } from './auth/auth.module';
 import { DatabaseModule } from './database';
 
