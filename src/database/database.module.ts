@@ -15,7 +15,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         database: configService.get('PGDATABASE'),
         port: configService.get('PGPORT'),
         entities: [__dirname + '/../**/*.entity.js'],
-        synchronize: true,
       }),
     }),
   ],

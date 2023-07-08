@@ -5,13 +5,13 @@ import { CreatePostDto, UpdatePostDto } from '../dto';
 import { Post } from '../entities';
 
 @Injectable()
-export class NewsService {
+export class PostsService {
   constructor(
     @InjectRepository(Post)
     private postsRepository: Repository<Post>,
   ) {}
 
-  getAllPosts(): Promise<Post[]> {
+  async getAllPosts(): Promise<Post[]> {
     return this.postsRepository.find();
   }
 

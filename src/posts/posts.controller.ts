@@ -6,40 +6,45 @@ import {
   Param,
   Post,
   Put,
+  UseGuards,
 } from '@nestjs/common';
-import { NewsService } from './news.service';
+import { PostsService } from './posts.service';
 import { CreatePostDto, UpdatePostDto } from '../dto';
 import { Post as PostEntity } from '../entities';
+import { JwtAuthGuard } from 'src/auth/jwtAuth.guard';
 
-@Controller('news')
-export class NewsController {
-  constructor(private readonly newsService: NewsService) {}
+@Controller('posts')
+export class PostsController {
+  constructor(private readonly postsService: PostsService) {}
 
   @Get()
   getAllPosts(): Promise<PostEntity[]> {
-    return this.newsService.getAllPosts();
+    return this.postsService.getAllPosts();
   }
 
   @Get(':id')
   getPostById(@Param('id') id: string): Promise<PostEntity> {
-    return this.newsService.getPostById(Number(id));
+    return this.postsService.getPostById(Number(id));
   }
 
   @Post()
+  @UseGuards(JwtAuthGuard)
   createPost(@Body() createPostDto: CreatePostDto): Promise<PostEntity> {
-    return this.newsService.createPost(createPostDto);
+    return this.postsService.createPost(createPostDto);
   }
 
   @Put(':id')
+  @UseGuards(JwtAuthGuard)
   updatePost(
     @Param() id: string,
     @Body() updatePostDto: UpdatePostDto,
   ): Promise<PostEntity> {
-    return this.newsService.updatePost(Number(id), updatePostDto);
+    return this.postsService.updatePost(Number(id), updatePostDto);
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard)
   deletePost(@Param() id: string): Promise<void> {
-    return this.newsService.deletePost(Number(id));
+    return this.postsService.deletePost(Number(id));
   }
 }
