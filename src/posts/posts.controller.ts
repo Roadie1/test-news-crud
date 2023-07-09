@@ -7,19 +7,22 @@ import {
   Post,
   Put,
   UseGuards,
+  Req,
+  Query,
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
-import { CreatePostDto, UpdatePostDto } from '../dto';
+import { CreatePostDto, GetPostsDto, UpdatePostDto } from '../dto';
 import { Post as PostEntity } from '../entities';
-import { JwtAuthGuard } from 'src/auth/jwtAuth.guard';
+import { JwtAuthGuard } from '../auth/jwtAuth.guard';
+import { RequestWithUser } from '../interfaces';
 
 @Controller('posts')
 export class PostsController {
   constructor(private readonly postsService: PostsService) {}
 
   @Get()
-  getAllPosts(): Promise<PostEntity[]> {
-    return this.postsService.getAllPosts();
+  getPosts(@Query() query: GetPostsDto): Promise<PostEntity[]> {
+    return this.postsService.getAllPosts(query);
   }
 
   @Get(':id')
@@ -29,22 +32,25 @@ export class PostsController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  createPost(@Body() createPostDto: CreatePostDto): Promise<PostEntity> {
-    return this.postsService.createPost(createPostDto);
+  createPost(
+    @Req() request: RequestWithUser,
+    @Body() createPostDto: CreatePostDto,
+  ): Promise<PostEntity> {
+    return this.postsService.createPost(createPostDto, request.user.email);
   }
 
   @Put(':id')
   @UseGuards(JwtAuthGuard)
   updatePost(
-    @Param() id: string,
+    @Param() id: { id: string },
     @Body() updatePostDto: UpdatePostDto,
   ): Promise<PostEntity> {
-    return this.postsService.updatePost(Number(id), updatePostDto);
+    return this.postsService.updatePost(Number(id.id), updatePostDto);
   }
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
-  deletePost(@Param() id: string): Promise<void> {
-    return this.postsService.deletePost(Number(id));
+  deletePost(@Param() id: { id: string }): Promise<void> {
+    return this.postsService.deletePost(Number(id.id));
   }
 }

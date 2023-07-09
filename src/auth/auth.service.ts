@@ -1,4 +1,4 @@
-import bcrypt from 'bcrypt';
+import * as bcrypt from 'bcrypt';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
@@ -10,17 +10,17 @@ import { TokenPayload } from '../interfaces';
 @Injectable()
 export class AuthService {
   constructor(
-    private userService: UsersService,
+    private usersService: UsersService,
     private jwtService: JwtService,
     private configService: ConfigService,
   ) {}
-  DEFAULT_SALT = 10;
+  DEFAULT_PASS_SALT = 10;
 
   async login(loginDto: UserDto): Promise<User> {
     const { email, password } = loginDto;
 
     try {
-      const user = await this.userService.findUserByEmail(email);
+      const user = await this.usersService.findUserByEmail(email);
       const isPasswordMatching = await bcrypt.compare(password, user.password);
 
       if (!isPasswordMatching) {
@@ -30,7 +30,7 @@ export class AuthService {
         );
       }
 
-      return user; // TODO
+      return user;
     } catch (error) {
       throw new HttpException(
         'Incorrect email or password',
@@ -50,9 +50,12 @@ export class AuthService {
     }
 
     try {
-      const hashedPassword = await bcrypt.hash(password, this.DEFAULT_SALT);
+      const hashedPassword = await bcrypt.hash(
+        password,
+        this.DEFAULT_PASS_SALT,
+      );
 
-      await this.userService.createUser({
+      await this.usersService.createUser({
         ...createUserDto,
         password: hashedPassword,
       });
@@ -63,6 +66,7 @@ export class AuthService {
           HttpStatus.BAD_REQUEST,
         );
       }
+
       throw new HttpException(
         'Something went wrong',
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -70,15 +74,38 @@ export class AuthService {
     }
   }
 
-  getCookieWithJwtToken(userId: number) {
+  getCookieWithJwtAccessToken(userId: number): string {
     const payload: TokenPayload = { userId };
-    const token = this.jwtService.sign(payload);
+    const token = this.jwtService.sign(payload, {
+      secret: this.configService.get('JWT_ACCESS_SECRET'),
+      expiresIn: this.configService.get('JWT_ACCESS_EXPIRATION_TIME'),
+    });
+
     return `Authentication=${token}; HttpOnly; Path=/; Max-Age=${this.configService.get(
-      'JWT_EXPIRATION_TIME',
+      'JWT_ACCESS_EXPIRATION_TIME',
     )}`;
   }
 
-  getCookieForLogOut() {
-    return `Authentication=; HttpOnly; Path=/; Max-Age=0`;
+  async getCookieWithJwtRefreshToken(userId: number): Promise<string> {
+    const payload: TokenPayload = { userId };
+    const token = this.jwtService.sign(payload, {
+      secret: this.configService.get('JWT_REFRESH_SECRET'),
+      expiresIn: this.configService.get('JWT_REFRESH_EXPIRATION_TIME'),
+    });
+
+    await this.usersService.setRefreshToken(token, userId);
+
+    return `Refresh=${token}; HttpOnly; Path=/; Max-Age=${this.configService.get(
+      'JWT_REFRESH_EXPIRATION_TIME',
+    )}`;
+  }
+
+  async logout(userId: number): Promise<string[]> {
+    await this.usersService.removeRefreshToken(userId);
+
+    return [
+      'Authentication=; HttpOnly; Path=/; Max-Age=0',
+      'Refresh=; HttpOnly; Path=/; Max-Age=0',
+    ];
   }
 }

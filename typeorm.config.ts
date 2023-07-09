@@ -2,7 +2,7 @@ import { DataSource, DataSourceOptions } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { config } from 'dotenv';
 import { Post, User } from './src/entities';
-import { CreateTables1688829754131 } from './migrations/1688829754131-CreateTables';
+import { CreateTables1688902367048 } from './migrations/1688902367048-CreateTables';
 
 config();
 
@@ -15,7 +15,7 @@ const options: DataSourceOptions = {
   database: configService.get('PGDATABASE'),
   port: configService.get('PGPORT'),
   entities: [Post, User],
-  migrations: [CreateTables1688829754131],
+  migrations: [CreateTables1688902367048],
 };
 
 export default new DataSource(options);

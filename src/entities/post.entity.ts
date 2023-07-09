@@ -12,7 +12,7 @@ export class Post {
   public content: string;
 
   @Column()
-  public createdAt: string;
+  public createdAt: Date;
 
   @Column()
   public createdBy: string;

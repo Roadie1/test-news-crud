@@ -1,4 +1,4 @@
 import { Post } from './post.entity';
-import { User } from './user.entiry';
+import { User } from './user.entity';
 
 export { Post, User };
